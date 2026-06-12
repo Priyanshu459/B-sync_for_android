@@ -13,6 +13,10 @@ import kotlinx.serialization.json.Json
 import org.mozilla.geckoview.GeckoRuntime
 import org.mozilla.geckoview.ContentBlocking
 import org.mozilla.geckoview.GeckoSession
+import com.example.bsyncbrowser.update.UpdateInfo
+import com.example.bsyncbrowser.update.UpdateChecker
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.launch
 
 @Serializable
 data class LibraryItem(val url: String, val title: String)
@@ -29,7 +33,8 @@ data class BrowserState(
     val tabs: List<BrowserTab> = emptyList(),
     val activeTabIndex: Int = -1,
     val bookmarks: List<LibraryItem> = emptyList(),
-    val history: List<LibraryItem> = emptyList()
+    val history: List<LibraryItem> = emptyList(),
+    val updateInfo: UpdateInfo? = null
 )
 
 class BrowserViewModel(application: Application) : AndroidViewModel(application) {
@@ -53,6 +58,25 @@ class BrowserViewModel(application: Application) : AndroidViewModel(application)
     init {
         loadLibrary()
         createNewTab("resource://android/assets/newtab.html")
+        checkForUpdates()
+    }
+
+    private fun checkForUpdates() {
+        viewModelScope.launch {
+            val appVersion = try {
+                getApplication<Application>().packageManager.getPackageInfo(getApplication<Application>().packageName, 0).versionName
+            } catch (e: Exception) {
+                "1.0"
+            }
+            val update = UpdateChecker.checkForUpdate(appVersion ?: "1.0")
+            if (update?.isUpdateAvailable == true) {
+                _uiState.update { it.copy(updateInfo = update) }
+            }
+        }
+    }
+
+    fun dismissUpdateDialog() {
+        _uiState.update { it.copy(updateInfo = null) }
     }
 
     fun loadLibrary() {

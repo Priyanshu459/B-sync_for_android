@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <!-- Allow access to the external storage (needed for DownloadManager) -->
+    <external-path name="external_downloads" path="Download/" />
+    <external-files-path name="external_files" path="Download/" />
+</paths>

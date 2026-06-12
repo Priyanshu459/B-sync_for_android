@@ -44,6 +44,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
+import com.example.bsyncbrowser.update.UpdateDownloader
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -66,7 +69,7 @@ val TextColor: Color @Composable get() = LocalTextColor.current
 @Composable
 fun MainScreen(
     modifier: Modifier = Modifier,
-    viewModel: BrowserViewModel = viewModel(),
+    browserViewModel: BrowserViewModel = viewModel(),
     vaultViewModel: VaultViewModel = viewModel(),
     syncViewModel: SyncViewModel = viewModel(),
     settingsViewModel: SettingsViewModel = viewModel()
@@ -74,7 +77,7 @@ fun MainScreen(
     val configuration = LocalConfiguration.current
     val isTablet = configuration.screenWidthDp > 600
 
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by browserViewModel.uiState.collectAsState()
     val vaultState by vaultViewModel.uiState.collectAsState()
     val syncState by syncViewModel.uiState.collectAsState()
     val settingsState by settingsViewModel.uiState.collectAsState()
@@ -141,7 +144,7 @@ fun MainScreen(
             onPush = { syncViewModel.pushSync() },
             onPull = {
                 syncViewModel.pullSync { _, _ ->
-                    viewModel.loadLibrary()
+                    browserViewModel.loadLibrary()
                 }
             }
         )
@@ -153,14 +156,14 @@ fun MainScreen(
                 SidebarContent(
                     modifier = Modifier.width(260.dp),
                     uiState = uiState,
-                    onNewTab = { viewModel.createNewTab("resource://android/assets/newtab.html?engine=${settings.searchEngine}") },
-                    onNewIncognitoTab = { viewModel.createNewTab("resource://android/assets/newtab.html?engine=${settings.searchEngine}", isIncognito = true) },
-                    onTabClick = { index -> viewModel.switchTab(index) },
-                    onTabClose = { index -> viewModel.closeTab(index) },
-                    onLibraryItemClick = { url -> viewModel.createNewTab(url) },
-                    onDeleteBookmark = { index -> viewModel.deleteBookmark(index) },
-                    onDeleteHistory = { index -> viewModel.deleteHistoryItem(index) },
-                    onClearHistory = { viewModel.clearHistory() },
+                    onNewTab = { browserViewModel.createNewTab("resource://android/assets/newtab.html?engine=${settings.searchEngine}") },
+                    onNewIncognitoTab = { browserViewModel.createNewTab("resource://android/assets/newtab.html?engine=${settings.searchEngine}", isIncognito = true) },
+                    onTabClick = { index -> browserViewModel.switchTab(index) },
+                    onTabClose = { index -> browserViewModel.closeTab(index) },
+                    onLibraryItemClick = { url -> browserViewModel.createNewTab(url) },
+                    onDeleteBookmark = { index -> browserViewModel.deleteBookmark(index) },
+                    onDeleteHistory = { index -> browserViewModel.deleteHistoryItem(index) },
+                    onClearHistory = { browserViewModel.clearHistory() },
                     onOpenVault = { vaultViewModel.toggleVaultModal() },
                     onOpenSync = { syncViewModel.toggleSyncModal() },
                     onOpenSettings = { settingsViewModel.toggleSettingsModal() }
@@ -171,11 +174,11 @@ fun MainScreen(
                 url = typedUrl,
                 uiState = uiState,
                 onUrlChange = { typedUrl = it },
-                onGoClick = { viewModel.loadUrlInActiveTab(typedUrl, settings.searchEngine) },
-                onBackClick = { viewModel.goBackActiveTab() },
-                onForwardClick = { viewModel.goForwardActiveTab() },
-                onReloadClick = { viewModel.reloadActiveTab() },
-                onToggleBookmark = { viewModel.toggleBookmark(typedUrl, activeTab?.title ?: typedUrl) },
+                onGoClick = { browserViewModel.loadUrlInActiveTab(typedUrl, settings.searchEngine) },
+                onBackClick = { browserViewModel.goBackActiveTab() },
+                onForwardClick = { browserViewModel.goForwardActiveTab() },
+                onReloadClick = { browserViewModel.reloadActiveTab() },
+                onToggleBookmark = { browserViewModel.toggleBookmark(typedUrl, activeTab?.title ?: typedUrl) },
                 activeSession = activeTab?.session,
                 onMenuClick = null // No menu button needed on tablet
             )
@@ -183,14 +186,14 @@ fun MainScreen(
                 SidebarContent(
                     modifier = Modifier.width(260.dp),
                     uiState = uiState,
-                    onNewTab = { viewModel.createNewTab("resource://android/assets/newtab.html?engine=${settings.searchEngine}") },
-                    onNewIncognitoTab = { viewModel.createNewTab("resource://android/assets/newtab.html?engine=${settings.searchEngine}", isIncognito = true) },
-                    onTabClick = { index -> viewModel.switchTab(index) },
-                    onTabClose = { index -> viewModel.closeTab(index) },
-                    onLibraryItemClick = { url -> viewModel.createNewTab(url) },
-                    onDeleteBookmark = { index -> viewModel.deleteBookmark(index) },
-                    onDeleteHistory = { index -> viewModel.deleteHistoryItem(index) },
-                    onClearHistory = { viewModel.clearHistory() },
+                    onNewTab = { browserViewModel.createNewTab("resource://android/assets/newtab.html?engine=${settings.searchEngine}") },
+                    onNewIncognitoTab = { browserViewModel.createNewTab("resource://android/assets/newtab.html?engine=${settings.searchEngine}", isIncognito = true) },
+                    onTabClick = { index -> browserViewModel.switchTab(index) },
+                    onTabClose = { index -> browserViewModel.closeTab(index) },
+                    onLibraryItemClick = { url -> browserViewModel.createNewTab(url) },
+                    onDeleteBookmark = { index -> browserViewModel.deleteBookmark(index) },
+                    onDeleteHistory = { index -> browserViewModel.deleteHistoryItem(index) },
+                    onClearHistory = { browserViewModel.clearHistory() },
                     onOpenVault = { vaultViewModel.toggleVaultModal() },
                     onOpenSync = { syncViewModel.toggleSyncModal() },
                     onOpenSettings = { settingsViewModel.toggleSettingsModal() }
@@ -209,25 +212,25 @@ fun MainScreen(
                         modifier = Modifier.fillMaxSize(),
                         uiState = uiState,
                         onNewTab = { 
-                            viewModel.createNewTab("resource://android/assets/newtab.html?engine=${settings.searchEngine}")
+                            browserViewModel.createNewTab("resource://android/assets/newtab.html?engine=${settings.searchEngine}")
                             scope.launch { drawerState.close() }
                         },
                         onNewIncognitoTab = {
-                            viewModel.createNewTab("resource://android/assets/newtab.html?engine=${settings.searchEngine}", isIncognito = true)
+                            browserViewModel.createNewTab("resource://android/assets/newtab.html?engine=${settings.searchEngine}", isIncognito = true)
                             scope.launch { drawerState.close() }
                         },
                         onTabClick = { index -> 
-                            viewModel.switchTab(index)
+                            browserViewModel.switchTab(index)
                             scope.launch { drawerState.close() }
                         },
-                        onTabClose = { index -> viewModel.closeTab(index) },
+                        onTabClose = { index -> browserViewModel.closeTab(index) },
                         onLibraryItemClick = { url -> 
-                            viewModel.createNewTab(url)
+                            browserViewModel.createNewTab(url)
                             scope.launch { drawerState.close() }
                         },
-                        onDeleteBookmark = { index -> viewModel.deleteBookmark(index) },
-                        onDeleteHistory = { index -> viewModel.deleteHistoryItem(index) },
-                        onClearHistory = { viewModel.clearHistory() },
+                        onDeleteBookmark = { index -> browserViewModel.deleteBookmark(index) },
+                        onDeleteHistory = { index -> browserViewModel.deleteHistoryItem(index) },
+                        onClearHistory = { browserViewModel.clearHistory() },
                         onOpenVault = { 
                             vaultViewModel.toggleVaultModal()
                             scope.launch { drawerState.close() }
@@ -249,13 +252,38 @@ fun MainScreen(
                 url = typedUrl,
                 uiState = uiState,
                 onUrlChange = { typedUrl = it },
-                onGoClick = { viewModel.loadUrlInActiveTab(typedUrl, settings.searchEngine) },
-                onBackClick = { viewModel.goBackActiveTab() },
-                onForwardClick = { viewModel.goForwardActiveTab() },
-                onReloadClick = { viewModel.reloadActiveTab() },
-                onToggleBookmark = { viewModel.toggleBookmark(typedUrl, activeTab?.title ?: typedUrl) },
+                onGoClick = { browserViewModel.loadUrlInActiveTab(typedUrl, settings.searchEngine) },
+                onBackClick = { browserViewModel.goBackActiveTab() },
+                onForwardClick = { browserViewModel.goForwardActiveTab() },
+                onReloadClick = { browserViewModel.reloadActiveTab() },
+                onToggleBookmark = { browserViewModel.toggleBookmark(typedUrl, activeTab?.title ?: typedUrl) },
                 activeSession = activeTab?.session,
                 onMenuClick = { scope.launch { drawerState.open() } }
+            )
+        }
+
+        uiState.updateInfo?.let { updateInfo ->
+            val context = LocalContext.current
+            AlertDialog(
+                onDismissRequest = { browserViewModel.dismissUpdateDialog() },
+                title = { Text("Update Available: ${updateInfo.latestVersion}", color = TextColor) },
+                text = { Text(updateInfo.releaseNotes, color = TextColor.copy(alpha = 0.8f)) },
+                confirmButton = {
+                    TextButton(onClick = {
+                        UpdateDownloader.downloadAndInstall(context, updateInfo.downloadUrl, updateInfo.latestVersion)
+                        browserViewModel.dismissUpdateDialog()
+                    }) {
+                        Text("Download & Install", color = AccentColor)
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { browserViewModel.dismissUpdateDialog() }) {
+                        Text("Later", color = TextColor)
+                    }
+                },
+                containerColor = BgMain,
+                titleContentColor = TextColor,
+                textContentColor = TextColor
             )
         }
     }
