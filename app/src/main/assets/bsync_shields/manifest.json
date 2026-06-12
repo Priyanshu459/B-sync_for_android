@@ -1,0 +1,20 @@
+{
+  "manifest_version": 2,
+  "name": "B-Sync Anti-Popup Shield",
+  "version": "1.0",
+  "description": "Defuses highly evasive scareware pop-ups and overlays natively.",
+  "permissions": ["<all_urls>"],
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content_script.js"],
+      "run_at": "document_start",
+      "all_frames": true
+    }
+  ],
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "bsync-shields@bsync.app"
+    }
+  }
+}

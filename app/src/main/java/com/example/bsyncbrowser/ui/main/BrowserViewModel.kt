@@ -52,6 +52,17 @@ class BrowserViewModel(application: Application) : AndroidViewModel(application)
                 },
                 { e -> e?.printStackTrace() }
             )
+        
+        webExtensionController.ensureBuiltIn("resource://android/assets/bsync_shields/", "bsync-shields@bsync.app")
+            .accept(
+                { extension ->
+                    extension?.let {
+                        webExtensionController.setAllowedInPrivateBrowsing(it, true)
+                    }
+                },
+                { e -> e?.printStackTrace() }
+            )
+
         settings.contentBlocking.setAntiTracking(ContentBlocking.AntiTracking.STRICT)
         settings.contentBlocking.setCookieBehavior(ContentBlocking.CookieBehavior.ACCEPT_FIRST_PARTY)
         settings.contentBlocking.setSafeBrowsing(
@@ -264,7 +275,7 @@ class BrowserViewModel(application: Application) : AndroidViewModel(application)
             
             val isUrl = android.util.Patterns.WEB_URL.matcher(input).matches()
             if (isUrl || input.contains("://")) {
-                if (!input.startsWith("http://") && !input.startsWith("https://")) {
+                if (!input.startsWith("http://") && !input.startsWith("https://") && !input.startsWith("resource://") && !input.startsWith("file://") && !input.startsWith("moz-extension://")) {
                     finalUrl = "https://$input"
                 }
             } else {
