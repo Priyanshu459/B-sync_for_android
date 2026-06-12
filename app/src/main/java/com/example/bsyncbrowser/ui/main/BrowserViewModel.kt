@@ -40,6 +40,8 @@ data class BrowserState(
 
 class BrowserViewModel(application: Application) : AndroidViewModel(application) {
     val geckoRuntime = GeckoRuntime.create(application).apply {
+        settings.aboutConfigEnabled = true
+        webExtensionController.ensureBuiltIn("resource://android/assets/ublock/", "uBlock0@raymondhill.net")
         settings.contentBlocking.setAntiTracking(
             ContentBlocking.AntiTracking.AD or
             ContentBlocking.AntiTracking.ANALYTIC or

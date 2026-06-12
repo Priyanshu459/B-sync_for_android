@@ -565,6 +565,26 @@ fun MainContent(
                     modifier = Modifier.align(Alignment.CenterEnd).padding(end = 8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+                    var showShieldDropdown by remember { mutableStateOf(false) }
+                    Box {
+                        IconButton(onClick = { showShieldDropdown = true }, modifier = Modifier.size(32.dp)) {
+                            Icon(androidx.compose.material.icons.Icons.Outlined.Security, contentDescription = "Shields", tint = AccentColor, modifier = Modifier.size(20.dp))
+                        }
+                        androidx.compose.material3.DropdownMenu(
+                            expanded = showShieldDropdown,
+                            onDismissRequest = { showShieldDropdown = false },
+                            modifier = Modifier.background(BgDark)
+                        ) {
+                            androidx.compose.material3.DropdownMenuItem(
+                                text = { Text("B-Sync Shields ON", color = TextColor, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold) },
+                                onClick = { showShieldDropdown = false }
+                            )
+                            androidx.compose.material3.DropdownMenuItem(
+                                text = { Text("Powered by uBlock Origin", color = Color.Gray, fontSize = 12.sp) },
+                                onClick = { showShieldDropdown = false }
+                            )
+                        }
+                    }
                     IconButton(onClick = onToggleBookmark, modifier = Modifier.size(32.dp)) {
                         AnimatedContent(
                             targetState = isBookmarked,
@@ -578,9 +598,6 @@ fun MainContent(
                                 modifier = Modifier.size(20.dp)
                             )
                         }
-                    }
-                    IconButton(onClick = {}, modifier = Modifier.size(32.dp)) {
-                        Icon(Icons.Outlined.Download, contentDescription = "Downloads", tint = TextColor, modifier = Modifier.size(20.dp))
                     }
                 }
             }
