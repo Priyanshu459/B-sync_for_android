@@ -3,7 +3,14 @@
   "name": "B-Sync Anti-Popup Shield",
   "version": "1.0",
   "description": "Defuses highly evasive scareware pop-ups and overlays natively.",
-  "permissions": ["<all_urls>"],
+  "permissions": [
+    "<all_urls>",
+    "webRequest",
+    "webRequestBlocking"
+  ],
+  "background": {
+    "scripts": ["background.bundle.js"]
+  },
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
