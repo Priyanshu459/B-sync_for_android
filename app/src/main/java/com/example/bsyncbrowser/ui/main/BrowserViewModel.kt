@@ -26,7 +26,8 @@ data class BrowserTab(
     val session: GeckoSession,
     var url: String = "resource://android/assets/newtab.html",
     var title: String = "New Tab",
-    val isIncognito: Boolean = false
+    val isIncognito: Boolean = false,
+    var canGoBack: Boolean = false
 )
 
 data class BrowserState(
@@ -171,6 +172,15 @@ class BrowserViewModel(application: Application) : AndroidViewModel(application)
                         val tab = state.tabs.find { it.session == session }
                         val title = tab?.title ?: newUrl
                         addToHistory(newUrl, title, tab?.isIncognito ?: isIncognito)
+                    }
+                }
+                
+                override fun onCanGoBack(session: GeckoSession, canGoBack: Boolean) {
+                    _uiState.update { state ->
+                        val updatedTabs = state.tabs.map { tab ->
+                            if (tab.session == session) tab.copy(canGoBack = canGoBack) else tab
+                        }
+                        state.copy(tabs = updatedTabs)
                     }
                 }
             }

@@ -2,6 +2,7 @@ package com.example.bsyncbrowser
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -19,7 +20,7 @@ fun MainNavigation() {
     onBack = { backStack.removeLastOrNull() },
     entryProvider = entryProvider {
         entry<Main> {
-          MainScreen(modifier = Modifier.safeDrawingPadding().padding(16.dp))
+          MainScreen(modifier = Modifier.fillMaxSize())
         }
       },
   )

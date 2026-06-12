@@ -44,6 +44,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
+import androidx.activity.compose.BackHandler
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.TextButton
 import com.example.bsyncbrowser.update.UpdateDownloader
@@ -312,6 +313,7 @@ fun SidebarContent(
     Column(
         modifier = modifier
             .background(BgDark)
+            .systemBarsPadding()
             .padding(10.dp)
     ) {
         Spacer(modifier = Modifier.height(16.dp))
@@ -500,8 +502,16 @@ fun MainContent(
     onMenuClick: (() -> Unit)?
 ) {
     val isBookmarked = uiState.bookmarks.any { it.url == url }
+    
+    val canGoBack = activeSession?.let { session ->
+        uiState.tabs.find { it.session == session }?.canGoBack
+    } == true
+    
+    BackHandler(enabled = canGoBack) {
+        onBackClick()
+    }
 
-    Column(modifier = modifier.background(BgMain)) {
+    Column(modifier = modifier.background(BgMain).systemBarsPadding()) {
         // Titlebar
         Row(
             modifier = Modifier
