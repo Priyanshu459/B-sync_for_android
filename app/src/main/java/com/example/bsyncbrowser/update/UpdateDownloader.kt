@@ -43,7 +43,7 @@ object UpdateDownloader {
             override fun onReceive(ctxt: Context, intent: Intent) {
                 val id = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1)
                 if (id == downloadId) {
-                    installApk(ctxt, fileName)
+                    installApk(ctxt, id)
                     ctxt.unregisterReceiver(this)
                 }
             }
@@ -57,12 +57,23 @@ object UpdateDownloader {
         )
     }
 
-    private fun installApk(context: Context, fileName: String) {
+    private fun installApk(context: Context, downloadId: Long) {
         try {
-            val file = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), fileName)
-            if (!file.exists()) return
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                if (!context.packageManager.canRequestPackageInstalls()) {
+                    val intent = Intent(android.provider.Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).apply {
+                        data = Uri.parse("package:${context.packageName}")
+                        flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                    }
+                    context.startActivity(intent)
+                    Toast.makeText(context, "Please allow B-sync to install updates, then try again.", Toast.LENGTH_LONG).show()
+                    return
+                }
+            }
 
-            val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
+            val downloadManager = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+            val uri = downloadManager.getUriForDownloadedFile(downloadId) ?: return
+
             val intent = Intent(Intent.ACTION_VIEW).apply {
                 setDataAndType(uri, "application/vnd.android.package-archive")
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION
