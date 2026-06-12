@@ -203,6 +203,7 @@ fun MainScreen(
     } else {
         ModalNavigationDrawer(
             drawerState = drawerState,
+            gesturesEnabled = drawerState.isOpen,
             drawerContent = {
                 ModalDrawerSheet(
                     drawerContainerColor = BgDark,

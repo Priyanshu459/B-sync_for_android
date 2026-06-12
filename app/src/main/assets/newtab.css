@@ -430,4 +430,9 @@ body {
   .hero { flex-direction: column; align-items: flex-start; gap: 1rem; }
   .grid-system { grid-template-columns: 1fr; }
   .grid-col-2 { grid-column: span 1; }
+  
+  /* Fix oversized elements on mobile */
+  .mono-clock { font-size: 3.5rem; }
+  .app-container { padding: 1.5rem 1rem; }
+  .search-wrapper { padding: 0.75rem 1rem; }
 }
