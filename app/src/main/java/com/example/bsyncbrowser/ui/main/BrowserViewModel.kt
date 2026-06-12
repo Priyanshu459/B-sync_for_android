@@ -17,6 +17,8 @@ import com.example.bsyncbrowser.update.UpdateInfo
 import com.example.bsyncbrowser.update.UpdateChecker
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
+import androidx.security.crypto.EncryptedSharedPreferences
+import androidx.security.crypto.MasterKey
 
 @Serializable
 data class LibraryItem(val url: String, val title: String)
@@ -49,9 +51,23 @@ class BrowserViewModel(application: Application) : AndroidViewModel(application)
             ContentBlocking.AntiTracking.CRYPTOMINING or
             ContentBlocking.AntiTracking.FINGERPRINTING
         )
+        settings.contentBlocking.setSafeBrowsing(
+            ContentBlocking.SafeBrowsing.MALWARE or 
+            ContentBlocking.SafeBrowsing.PHISHING
+        )
     }
 
-    private val prefs = application.getSharedPreferences("bsync_library", Context.MODE_PRIVATE)
+    private val masterKey = MasterKey.Builder(application)
+        .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+        .build()
+
+    private val prefs = EncryptedSharedPreferences.create(
+        application,
+        "bsync_library_secure",
+        masterKey,
+        EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+        EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+    )
 
     private val _uiState = MutableStateFlow(BrowserState())
     val uiState: StateFlow<BrowserState> = _uiState.asStateFlow()
@@ -155,6 +171,7 @@ class BrowserViewModel(application: Application) : AndroidViewModel(application)
     fun createNewTab(url: String, isIncognito: Boolean = false) {
         val sessionSettings = org.mozilla.geckoview.GeckoSessionSettings.Builder()
             .usePrivateMode(isIncognito)
+            .useTrackingProtection(true)
             .build()
             
         val session = GeckoSession(sessionSettings).apply {
