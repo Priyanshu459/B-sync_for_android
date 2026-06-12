@@ -217,6 +217,38 @@ class BrowserViewModel(application: Application) : AndroidViewModel(application)
                     }
                 }
             }
+
+            promptDelegate = object : GeckoSession.PromptDelegate {
+                private fun isScareware(text: String?): Boolean {
+                    if (text == null) return false
+                    val lower = text.lowercase()
+                    return lower.contains("warning") || 
+                           lower.contains("clean your device") || 
+                           lower.contains("virus") || 
+                           lower.contains("downloads pending") || 
+                           lower.contains("proceed now")
+                }
+
+                override fun onAlertPrompt(
+                    session: GeckoSession,
+                    prompt: GeckoSession.PromptDelegate.AlertPrompt
+                ): org.mozilla.geckoview.GeckoResult<GeckoSession.PromptDelegate.PromptResponse>? {
+                    if (isScareware(prompt.title) || isScareware(prompt.message)) {
+                        return org.mozilla.geckoview.GeckoResult.fromValue(prompt.dismiss())
+                    }
+                    return null
+                }
+
+                override fun onButtonPrompt(
+                    session: GeckoSession,
+                    prompt: GeckoSession.PromptDelegate.ButtonPrompt
+                ): org.mozilla.geckoview.GeckoResult<GeckoSession.PromptDelegate.PromptResponse>? {
+                    if (isScareware(prompt.title) || isScareware(prompt.message)) {
+                        return org.mozilla.geckoview.GeckoResult.fromValue(prompt.dismiss())
+                    }
+                    return null
+                }
+            }
             loadUri(url)
         }
 
