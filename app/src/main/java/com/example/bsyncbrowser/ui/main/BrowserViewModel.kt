@@ -86,6 +86,9 @@ class BrowserViewModel(application: Application) : AndroidViewModel(application)
     private val _uiState = MutableStateFlow(BrowserState())
     val uiState: StateFlow<BrowserState> = _uiState.asStateFlow()
 
+    private val _isFullscreen = MutableStateFlow(false)
+    val isFullscreen: StateFlow<Boolean> = _isFullscreen.asStateFlow()
+
     private var nextTabId = 0L
 
     init {
@@ -233,6 +236,12 @@ class BrowserViewModel(application: Application) : AndroidViewModel(application)
                 ): org.mozilla.geckoview.GeckoResult<GeckoSession.PromptDelegate.PromptResponse>? {
                     // Unconditionally dismiss all native confirm dialogs to prevent ad abuse
                     return org.mozilla.geckoview.GeckoResult.fromValue(prompt.dismiss())
+                }
+            }
+
+            contentDelegate = object : GeckoSession.ContentDelegate {
+                override fun onFullScreen(session: GeckoSession, fullScreen: Boolean) {
+                    _isFullscreen.value = fullScreen
                 }
             }
             loadUri(url)

@@ -41,6 +41,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 
 import androidx.compose.ui.platform.LocalContext
+import android.app.Activity
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
@@ -82,6 +86,7 @@ fun MainScreen(
     val vaultState by vaultViewModel.uiState.collectAsState()
     val syncState by syncViewModel.uiState.collectAsState()
     val settingsState by settingsViewModel.uiState.collectAsState()
+    val isFullscreen by browserViewModel.isFullscreen.collectAsState()
     
     val activeTab = if (uiState.activeTabIndex in uiState.tabs.indices) {
         uiState.tabs[uiState.activeTabIndex]
@@ -109,6 +114,23 @@ fun MainScreen(
         LocalTextColor provides textColor,
         LocalBorderColor provides borderColor
     ) {
+        val context = LocalContext.current
+        val activity = context as? Activity
+        
+        LaunchedEffect(isFullscreen) {
+            activity?.window?.let { window ->
+                val controller = WindowInsetsControllerCompat(window, window.decorView)
+                if (isFullscreen) {
+                    WindowCompat.setDecorFitsSystemWindows(window, false)
+                    controller.hide(WindowInsetsCompat.Type.systemBars())
+                    controller.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+                } else {
+                    WindowCompat.setDecorFitsSystemWindows(window, true)
+                    controller.show(WindowInsetsCompat.Type.systemBars())
+                }
+            }
+        }
+
         if (settingsState.isSettingsOpen) {
             SettingsDialog(
                 settingsState = settingsState,
@@ -153,7 +175,7 @@ fun MainScreen(
 
     if (isTablet && !settings.compactMode) {
         Row(modifier = modifier.fillMaxSize().background(BgMain)) {
-            if (settings.sidebarPos == "left") {
+            if (settings.sidebarPos == "left" && !isFullscreen) {
                 SidebarContent(
                     modifier = Modifier.width(260.dp),
                     uiState = uiState,
@@ -181,9 +203,10 @@ fun MainScreen(
                 onReloadClick = { browserViewModel.reloadActiveTab() },
                 onToggleBookmark = { browserViewModel.toggleBookmark(typedUrl, activeTab?.title ?: typedUrl) },
                 activeSession = activeTab?.session,
+                isFullscreen = isFullscreen,
                 onMenuClick = null // No menu button needed on tablet
             )
-            if (settings.sidebarPos == "right") {
+            if (settings.sidebarPos == "right" && !isFullscreen) {
                 SidebarContent(
                     modifier = Modifier.width(260.dp),
                     uiState = uiState,
@@ -260,6 +283,7 @@ fun MainScreen(
                 onReloadClick = { browserViewModel.reloadActiveTab() },
                 onToggleBookmark = { browserViewModel.toggleBookmark(typedUrl, activeTab?.title ?: typedUrl) },
                 activeSession = activeTab?.session,
+                isFullscreen = isFullscreen,
                 onMenuClick = { scope.launch { drawerState.open() } }
             )
         }
@@ -499,6 +523,7 @@ fun MainContent(
     onReloadClick: () -> Unit,
     onToggleBookmark: () -> Unit,
     activeSession: GeckoSession?,
+    isFullscreen: Boolean,
     onMenuClick: (() -> Unit)?
 ) {
     val isBookmarked = uiState.bookmarks.any { it.url == url }
@@ -512,15 +537,16 @@ fun MainContent(
     }
 
     Column(modifier = modifier.background(BgMain).systemBarsPadding()) {
-        // Titlebar
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(60.dp)
-                .background(BgMain)
-                .padding(horizontal = 10.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
+        if (!isFullscreen) {
+            // Titlebar
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(60.dp)
+                    .background(BgMain)
+                    .padding(horizontal = 10.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
             if (onMenuClick != null) {
                 IconButton(onClick = onMenuClick) {
                     Icon(Icons.Default.Menu, contentDescription = "Menu", tint = TextColor)
@@ -613,6 +639,7 @@ fun MainContent(
         }
         
         HorizontalDivider(color = BorderColor)
+        } // end of if(!isFullscreen)
 
         // Browser
         if (activeSession != null) {
