@@ -44,13 +44,16 @@ class BrowserViewModel(application: Application) : AndroidViewModel(application)
     val geckoRuntime = GeckoRuntime.create(application).apply {
         settings.aboutConfigEnabled = true
         webExtensionController.ensureBuiltIn("resource://android/assets/ublock/", "uBlock0@raymondhill.net")
-        settings.contentBlocking.setAntiTracking(
-            ContentBlocking.AntiTracking.AD or
-            ContentBlocking.AntiTracking.ANALYTIC or
-            ContentBlocking.AntiTracking.SOCIAL or
-            ContentBlocking.AntiTracking.CRYPTOMINING or
-            ContentBlocking.AntiTracking.FINGERPRINTING
-        )
+            .accept(
+                { extension ->
+                    extension?.let {
+                        webExtensionController.setAllowedInPrivateBrowsing(it, true)
+                    }
+                },
+                { e -> e?.printStackTrace() }
+            )
+        settings.contentBlocking.setAntiTracking(ContentBlocking.AntiTracking.STRICT)
+        settings.contentBlocking.setCookieBehavior(ContentBlocking.CookieBehavior.ACCEPT_FIRST_PARTY)
         settings.contentBlocking.setSafeBrowsing(
             ContentBlocking.SafeBrowsing.MALWARE or 
             ContentBlocking.SafeBrowsing.PHISHING
